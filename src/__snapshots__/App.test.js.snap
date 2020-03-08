@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`render ListResult 1`] = `
+<h1>
+  Lo sentimos no tenemos resultados
+</h1>
+`;
+
+exports[`renders learn react link 1`] = `
+<h1>
+  Lo sentimos no tenemos resultados
+</h1>
+`;
