@@ -123,7 +123,7 @@ const InputSearch = () => {
         setResult(companiesFilter);
       }
     }
-  }, [country.data, text, company.data, jobs.data]);
+  }, [country.data, text, company.data, jobs.data, getCountry]);
 
   return (
     <div>
