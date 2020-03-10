@@ -75,7 +75,7 @@ const JobsTable = ({ result, loading, error }) => {
 
   let data = result;
 
-  if (data === undefined || data.length === 0) {
+  if (data === undefined || data.length === 0 && !loading) {
     return <h1>No results</h1>;
   }
 

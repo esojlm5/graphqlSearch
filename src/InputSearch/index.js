@@ -102,7 +102,12 @@ const InputSearch = () => {
     if (text === "" && jobs.data) {
       setResult(jobs.data.jobs);
     } else {
-      if(country.data) {
+      getCountry({
+        variables: {
+          country: { slug: text }
+        }
+      });
+      if (country.data) {
         setResult(country.data.country.jobs);
       }
     }
@@ -111,7 +116,7 @@ const InputSearch = () => {
       if (company.data) {
         // eslint-disable-next-line array-callback-return
         const companiesFilter = company.data.companies.filter(e => {
-          if (e.slug === text.trim().replace(/\s/g, "-")) {
+          if (e.slug === text) {
             return e.jobs;
           }
         });
@@ -128,14 +133,12 @@ const InputSearch = () => {
           id="standard-basic"
           label="Search Jobs"
           onChange={e => {
-            setText(e.target.value);
-            if (e.target.value.length >= 3) {
-              getCountry({
-                variables: {
-                  country: { slug: e.target.value.trim().replace(/\s/g, "-") }
-                }
-              });
-            }
+            setText(
+              e.target.value
+                .trim()
+                .replace(/\s/g, "-")
+                .toLowerCase()
+            );
           }}
         />
       </form>
