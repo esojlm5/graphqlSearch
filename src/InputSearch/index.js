@@ -64,35 +64,61 @@ const SHOW_JOBS = gql`
   ${jobs}
 `;
 
-const InputSearch = () => {
-  const [dataJobs, setDataJobs] = useState([]);
-  const [text, setText] = useState("");
-  const [result, setResult] = useState([]);
-  const [runJobs, { loading: loadingJobs }] = useLazyQuery(
-    SHOW_JOBS,
-    {
-      onCompleted: data => {
-        if (data.jobs.length) {
-          setDataJobs(data.jobs);
-          setResult(data.jobs);
-        }
+const SHOW_COMPANYS = gql`
+  query getCompanies {
+    companies {
+      id
+      name
+      slug
+      jobs {
+        ...jobInfo
       }
     }
-  );
+  }
+  ${jobs}
+`;
+const InputSearch = () => {
+  const [text, setText] = useState("");
+  const [result, setResult] = useState([]);
+  const [runJobs, jobs] = useLazyQuery(SHOW_JOBS);
 
-  const [getCountry, { loading, error, data }] = useLazyQuery(SHOW_COUNTRY);
+  const [getCountry, country] = useLazyQuery(SHOW_COUNTRY);
+
+  const [getCompanies, company] = useLazyQuery(SHOW_COMPANYS);
+
   useEffect(() => {
     runJobs();
-  }, [runJobs]);
+    getCompanies();
+  }, [getCompanies, runJobs]);
+
+  useEffect(() => {
+    if (jobs.data) {
+      setResult(jobs.data.jobs);
+    }
+  }, [jobs.data]);
 
   const classes = useStyles();
   useEffect(() => {
-    if (text === "") {
-      setResult(dataJobs);
+    if (text === "" && jobs.data) {
+      setResult(jobs.data.jobs);
     } else {
-      setResult(data);
+      if(country.data) {
+        setResult(country.data.country.jobs);
+      }
     }
-  }, [dataJobs, data, text]);
+
+    if (text !== "" && country.data === undefined) {
+      if (company.data) {
+        // eslint-disable-next-line array-callback-return
+        const companiesFilter = company.data.companies.filter(e => {
+          if (e.slug === text.trim().replace(/\s/g, "-")) {
+            return e.jobs;
+          }
+        });
+        setResult(companiesFilter);
+      }
+    }
+  }, [country.data, text, company.data, jobs.data]);
 
   return (
     <div>
@@ -116,8 +142,8 @@ const InputSearch = () => {
 
       <JobsTable
         result={result}
-        loading={loading || loadingJobs}
-        error={error}
+        loading={country.loading || jobs.loading}
+        error={country.error}
       />
     </div>
   );

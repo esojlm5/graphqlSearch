@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Box, Hidden, makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles({
@@ -69,18 +69,18 @@ const useStyles = makeStyles({
 
 const JobsTable = ({ result, loading, error }) => {
   const classes = useStyles();
-  const [hover, setHover] = useState(false);
   if (loading) {
     return <h1>Loading...</h1>;
   }
 
   let data = result;
-  if (result && result.country) {
-    data = result.country.jobs;
-  }
 
   if (data === undefined || data.length === 0) {
     return <h1>No results</h1>;
+  }
+
+  if (data[0].jobs !== undefined) {
+    data = data[0].jobs;
   }
   data = data.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -121,6 +121,7 @@ const JobsTable = ({ result, loading, error }) => {
             </div>
             <Hidden smDown>
               <div className={classes.tag}>
+                {/* eslint-disable-next-line array-callback-return */}
                 {row.tags.map((tag, index) => {
                   if (index < 4) {
                     return (
