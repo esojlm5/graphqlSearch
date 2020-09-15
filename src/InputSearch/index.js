@@ -1,129 +1,98 @@
 import React, { useEffect, useState } from "react";
 import { useLazyQuery } from "@apollo/react-hooks";
-import { gql } from "apollo-boost";
+import { useDebounce } from "use-debounce";
 
-import TextField from "@material-ui/core/TextField";
+import {
+  GET_COUNTRY,
+  GET_CITY,
+  GET_JOBS,
+  GET_LOCATIONS,
+} from "../graphql/queries";
 
 import JobsTable from "../ListResults";
+import { TextField } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles({
   root: {
-    width: "100%"
-  }
+    width: "100%",
+  },
 });
 
-const jobs = gql`
-  fragment jobInfo on Job {
-    company {
-      logoUrl
-      name
-    }
-    tags {
-      name
-    }
-    title
-    isFeatured
-    isPublished
-    createdAt
-    remotes {
-      name
-    }
-    applyUrl
-    slug
-    cities {
-      name
-      country {
-        name
-      }
-    }
-    remotes {
-      name
-    }
-  }
-`;
-const SHOW_COUNTRY = gql`
-  query getCountry($country: LocationInput!) {
-    country(input: $country) {
-      id
-      name
-      jobs {
-        ...jobInfo
-      }
-    }
-  }
-  ${jobs}
-`;
-
-const SHOW_JOBS = gql`
-  query getJobs {
-    jobs {
-      ...jobInfo
-    }
-  }
-  ${jobs}
-`;
-
-const SHOW_COMPANYS = gql`
-  query getCompanies {
-    companies {
-      id
-      name
-      slug
-      jobs {
-        ...jobInfo
-      }
-    }
-  }
-  ${jobs}
-`;
 const InputSearch = () => {
+  const classes = useStyles();
   const [text, setText] = useState("");
+  const [valueBounce] = useDebounce(text, 300);
   const [result, setResult] = useState([]);
-  const [runJobs, jobs] = useLazyQuery(SHOW_JOBS);
+  const [error, setError] = useState(false);
+  const [runJobs, { data: dataJobs, loading: loadingJobs }] = useLazyQuery(
+    GET_JOBS
+  );
 
-  const [getCountry, country] = useLazyQuery(SHOW_COUNTRY);
+  const [
+    getCountry,
+    { data: dataCountry, loading: loadingCountry },
+  ] = useLazyQuery(GET_COUNTRY, { onError: (e) => setError(e) });
 
-  const [getCompanies, company] = useLazyQuery(SHOW_COMPANYS);
+  const [
+    getCity,
+    { data: dataCity, loading: loadingCity },
+  ] = useLazyQuery(GET_CITY, { onError: (e) => setError(e) });
+
+  const [
+    getLocation,
+    { data: LocationData, loading: loadingLocations },
+  ] = useLazyQuery(GET_LOCATIONS, {
+    onCompleted: (c) => setError(!c.locations.length),
+  });
 
   useEffect(() => {
     runJobs();
-    getCompanies();
-  }, [getCompanies, runJobs]);
+  }, [runJobs]);
 
   useEffect(() => {
-    if (jobs.data) {
-      setResult(jobs.data.jobs);
+    if (dataJobs?.jobs && valueBounce === "") {
+      setError(false);
+      setResult(dataJobs.jobs);
     }
-  }, [jobs.data]);
+  }, [dataJobs, valueBounce]);
 
-  const classes = useStyles();
   useEffect(() => {
-    if (text === "" && jobs.data) {
-      setResult(jobs.data.jobs);
-    } else {
-      getCountry({
-        variables: {
-          country: { slug: text }
-        }
-      });
-      if (country.data) {
-        setResult(country.data.country.jobs);
-      }
-    }
+    getLocation({
+      variables: {
+        l: { value: valueBounce },
+      },
+    });
+  }, [valueBounce]);
 
-    if (text !== "" && country.data === undefined) {
-      if (company.data) {
-        // eslint-disable-next-line array-callback-return
-        const companiesFilter = company.data.companies.filter(e => {
-          if (e.slug === text) {
-            return e.jobs;
-          }
+  useEffect(() => {
+    if (LocationData?.locations.length) {
+      const { type, slug } = LocationData.locations[0];
+      if (type === "city") {
+        getCity({
+          variables: {
+            q: { slug: slug },
+          },
         });
-        setResult(companiesFilter);
+      } else {
+        getCountry({
+          variables: {
+            q: { slug: slug },
+          },
+        });
       }
     }
-  }, [country.data, text, company.data, jobs.data, getCountry]);
+  }, [LocationData]);
+
+  useEffect(() => {
+    if (dataCity?.city?.jobs) {
+      setResult(dataCity.city.jobs);
+    }
+    if (dataCountry?.country?.jobs) {
+      setResult(dataCountry.country.jobs);
+      console.log(dataCountry?.country?.jobs);
+    }
+  }, [dataCity, dataCountry]);
 
   return (
     <div>
@@ -132,7 +101,7 @@ const InputSearch = () => {
           className={classes.root}
           id="standard-basic"
           label="Search Jobs"
-          onChange={e => {
+          onChange={(e) => {
             setText(
               e.target.value
                 .trim()
@@ -145,8 +114,10 @@ const InputSearch = () => {
 
       <JobsTable
         result={result}
-        loading={country.loading || jobs.loading}
-        error={country.error}
+        loading={
+          loadingJobs || loadingCountry || loadingCity || loadingLocations
+        }
+        error={error}
       />
     </div>
   );

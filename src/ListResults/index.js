@@ -1,22 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Hidden, makeStyles } from "@material-ui/core";
 
 const useStyles = makeStyles({
   table: {
-    minWidth: 650
+    minWidth: 650,
   },
   title: {
     flex: 2,
     display: "flex",
     "& h1": {
       fontSize: "calc(18.2px + 5.2 * ((100vw - 320px) / 1280))",
-      paddingRight: "30px"
-    }
+      paddingRight: "30px",
+    },
   },
   tag: {
     display: "flex",
     flex: 2,
-    flexWrap: "wrap"
+    flexWrap: "wrap",
   },
   image: {
     order: "-1",
@@ -25,7 +25,7 @@ const useStyles = makeStyles({
     display: "block",
     marginRight: "20px",
     maxWidth: "30%",
-    flexShrink: "0"
+    flexShrink: "0",
   },
   tags: {
     padding: "10px",
@@ -39,8 +39,8 @@ const useStyles = makeStyles({
     width: "20%",
     justifyContent: "center",
     "&:nth-child(4)": {
-      marginTop: "10px"
-    }
+      marginTop: "10px",
+    },
   },
   containerRef: {
     padding: "30px 20px",
@@ -54,37 +54,48 @@ const useStyles = makeStyles({
     transition: "all .25s ease",
     "&:hover": {
       boxShadow: "1px 2px 10px rgba(0,0,0,0.5)",
-      borderRadius: "4px"
-    }
+      borderRadius: "4px",
+    },
   },
   country: {
     flex: 1,
-    textAlign: "left"
+    textAlign: "left",
   },
   containerBar: {
     display: "flex",
-    padding: "30px 20px"
-  }
+    padding: "30px 20px",
+  },
 });
 
 const JobsTable = ({ result, loading, error }) => {
   const classes = useStyles();
+  const [data, setData] = useState(null);
+
+  console.log(result);
+  console.log(error);
+  useEffect(() => {
+    if (result?.length) {
+      setData(
+        result.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      );
+    }
+  }, [result]);
+
+  console.log(loading);
   if (loading) {
     return <h1>Loading...</h1>;
   }
 
-  let data = result;
-
-  if (data === undefined || (data.length === 0 && !loading)) {
+  if (!result?.length || error) {
     return <h1>No results</h1>;
   }
 
-  if (data[0].jobs !== undefined) {
-    data = data[0].jobs;
-  }
-  data = data.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  // if (data[0]?.jobs !== undefined) {
+  //   data = data[0].jobs;
+  // }
 
   return (
     <div data-test="test-result">
@@ -100,49 +111,51 @@ const JobsTable = ({ result, loading, error }) => {
         </Hidden>
       </div>
 
-      {data.map((row, index) => {
-        return (
-          <a
-            href={row.applyUrl}
-            className={classes.containerRef}
-            key={index}
-            target="_blank"
-          >
-            <div className={classes.title}>
-              <h1>{row.title}</h1>
-              <img
-                src={
-                  row.company.logoUrl ||
-                  `${process.env.PUBLIC_URL}image-logo.png`
-                }
-                alt="logo company"
-                className={classes.image}
-              />
-            </div>
-            <Hidden smDown>
-              <div className={classes.tag}>
-                {/* eslint-disable-next-line array-callback-return */}
-                {row.tags.map((tag, index) => {
-                  if (index < 4) {
-                    return (
-                      <div className={classes.tags} key={index}>
-                        {tag.name}
-                      </div>
-                    );
+      {data &&
+        data.map((row, index) => {
+          return (
+            <a
+              href={row.applyUrl}
+              className={classes.containerRef}
+              key={index}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <div className={classes.title}>
+                <h1>{row.title}</h1>
+                <img
+                  src={
+                    row.company.logoUrl ||
+                    `${process.env.PUBLIC_URL}image-logo.png`
                   }
-                })}
+                  alt="logo company"
+                  className={classes.image}
+                />
               </div>
-            </Hidden>
-            <Hidden smDown>
-              <div className={classes.country}>
-                {row.remotes.length === 0
-                  ? row.cities[0].country.name
-                  : "Remote"}
-              </div>
-            </Hidden>
-          </a>
-        );
-      })}
+              <Hidden smDown>
+                <div className={classes.tag}>
+                  {/* eslint-disable-next-line array-callback-return */}
+                  {row.tags.map((tag, index) => {
+                    if (index < 4) {
+                      return (
+                        <div className={classes.tags} key={index}>
+                          {tag.name}
+                        </div>
+                      );
+                    }
+                  })}
+                </div>
+              </Hidden>
+              <Hidden smDown>
+                <div className={classes.country}>
+                  {row.remotes.length === 0
+                    ? row.cities[0].country.name
+                    : "Remote"}
+                </div>
+              </Hidden>
+            </a>
+          );
+        })}
     </div>
   );
 };
