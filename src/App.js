@@ -1,7 +1,9 @@
 import React from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+
 import "./App.css";
 import { Container, makeStyles } from "@material-ui/core";
-import Search from "./InputSearch";
+import { Home, Result } from "./pages";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -11,10 +13,22 @@ const useStyles = makeStyles(() => ({
 
 function App() {
   const classes = useStyles();
+
   return (
-    <Container className={classes.root}>
-      <Search />
-    </Container>
+    <Router>
+      <Switch>
+        <Route exact path="/">
+          <Container className={classes.root}>
+            <Home />
+          </Container>
+        </Route>
+        <Router path="/result">
+          <Container className={classes.root}>
+            <Result />
+          </Container>
+        </Router>
+      </Switch>
+    </Router>
   );
 }
 

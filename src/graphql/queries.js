@@ -29,13 +29,34 @@ export const GET_CITY = gql`
   }
   ${jobsFields}
 `;
-export const GET_JOBS = gql`
-  query getJobs {
+
+export const GET_CITIES = gql`
+  query getCities {
     cities {
-      slug
+      name
+      jobs {
+        ...jobInfo
+      }
     }
-    jobs {
+  }
+  ${jobsFields}
+`;
+
+export const GET_JOBS = gql`
+  query getJobs($jobs: JobsInput) {
+    jobs(input: $jobs) {
       ...jobInfo
+    }
+  }
+  ${jobsFields}
+`;
+
+export const GET_REMOTE = gql`
+  query getRemote {
+    remotes {
+      jobs {
+        ...jobInfo
+      }
     }
   }
   ${jobsFields}
