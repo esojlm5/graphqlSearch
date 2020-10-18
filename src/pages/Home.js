@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useState } from "react";
+
+import { RegisterUser } from "../components";
 import { SearchContainer } from "../containers";
 
 const Home = () => {
+  const [openDialog, setOpenDialog] = useState(true);
+  const handleSubmit = e => {
+    setOpenDialog(false);
+  };
   return (
-    <SearchContainer />
+    <>
+      <RegisterUser onSubmit={handleSubmit} open={openDialog} />
+      <SearchContainer />
+    </>
   );
 };
 

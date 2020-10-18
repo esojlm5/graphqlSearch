@@ -18,27 +18,24 @@ const SearchContainer = () => {
   const [text, setText] = useState("");
   const [result, setResult] = useState([]);
   const [globalJobs, setGlobalJobs] = useState(false);
-  const [error, setError] = useState(false);
-  const { loading: loadingCities } = useQuery(GET_CITIES, {
+  const { loading: loadingCities, errorCities } = useQuery(GET_CITIES, {
     onCompleted: data =>
       result.length === 0 && location.pathname === "/" && setResult(data.cities)
   });
 
-  const [getRemotes, { loading: loadingRemotes }] = useLazyQuery(GET_REMOTE, {
+  const [getRemotes, { loading: loadingRemotes, errorRemotes }] = useLazyQuery(GET_REMOTE, {
     onCompleted: data => {
       setGlobalJobs(true);
-      setResult(data.remotes);
+      setResult(data.remotes[0].jobs);
     }
   });
 
   const [
     getLocations,
-    { data: LocationData, loading: loadingLocations }
-  ] = useLazyQuery(GET_LOCATIONS, {
-    onCompleted: c => setError(!c.locations.length)
-  });
+    { data: LocationData, loading: loadingLocations, error: errorLocations }
+  ] = useLazyQuery(GET_LOCATIONS);
 
-  const [getJobs, { loading: loadingJobs }] = useLazyQuery(GET_JOBS, {
+  const [getJobs, { loading: loadingJobs, errorJobs }] = useLazyQuery(GET_JOBS, {
     onCompleted: data => {
       setGlobalJobs(true);
       setResult(data.jobs);
@@ -57,11 +54,13 @@ const SearchContainer = () => {
   };
 
   useEffect(() => {
-    getLocations({
-      variables: {
-        l: { value: location?.state?.message }
-      }
-    });
+    if (location?.pathname !== "/") {
+      getLocations({
+        variables: {
+          l: { value: location?.state?.message }
+        }
+      });
+    }
   }, [location]);
 
   useEffect(() => {
@@ -83,7 +82,7 @@ const SearchContainer = () => {
         loading={
           loadingCities || loadingJobs || loadingRemotes || loadingLocations
         }
-        error={error}
+        error={errorLocations || errorCities || errorRemotes || errorJobs}
         global={globalJobs}
       />
     </div>

@@ -14,10 +14,10 @@ export const useStyles = makeStyles({
   },
   tag: {
     display: "flex",
-    flex: 2,
     flexWrap: "wrap",
   },
   image: {
+    backgroundColor: '#C8C8C8',
     order: "-1",
     width: "100px",
     height: "100px",

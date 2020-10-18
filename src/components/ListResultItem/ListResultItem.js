@@ -1,12 +1,12 @@
 import React from "react";
-import { Hidden } from "@material-ui/core";
+import { Box, Hidden } from "@material-ui/core";
 
-import { useStyles } from './style';
+import { useStyles } from "./style";
 
 const ListResultItem = ({ jobs }) => {
   const classes = useStyles();
 
-  return (jobs.map((row, jobIndex) => {
+  return jobs.map((row, jobIndex) => {
     return (
       <a
         href={row.applyUrl}
@@ -15,18 +15,22 @@ const ListResultItem = ({ jobs }) => {
         rel="noopener noreferrer"
         target="_blank"
       >
-        <div className={classes.title}>
+        <Box flex={2} className={classes.title}>
           <h1>{row.title}</h1>
-          <img
-            src={
-              row.company.logoUrl || `${process.env.PUBLIC_URL}image-logo.png`
-            }
-            alt="logo company"
-            className={classes.image}
-          />
-        </div>
+          {row.company.logoUrl ? (
+            <img
+              src={
+                row.company.logoUrl || `${process.env.PUBLIC_URL}image-logo.png`
+              }
+              alt="logo company"
+              className={classes.image}
+            />
+          ) : (
+            <div className={classes.image} />
+          )}
+        </Box>
         <Hidden smDown>
-          <div className={classes.tag}>
+          <Box flex={2} className={classes.tag}>
             {/* eslint-disable-next-line array-callback-return */}
             {row.tags.map((tag, index) => {
               if (index < 4) {
@@ -37,16 +41,16 @@ const ListResultItem = ({ jobs }) => {
                 );
               }
             })}
-          </div>
+          </Box>
         </Hidden>
         <Hidden smDown>
-          <div className={classes.cities}>
+          <Box flex={1} className={classes.cities}>
             {row.remotes.length === 0 ? row.cities[0].name : "Remote"}
-          </div>
+          </Box>
         </Hidden>
       </a>
     );
-  }));
+  });
 };
 
 export default ListResultItem;
