@@ -3,7 +3,10 @@ import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 import "./App.css";
 import { Container, makeStyles } from "@material-ui/core";
+import { isLoggedInVar } from "./graphql/cache";
 import { Home, Result } from "./pages";
+import { useReactiveVar } from "@apollo/client";
+import { RegisterUser } from "./components";
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -11,10 +14,18 @@ const useStyles = makeStyles(() => ({
   }
 }));
 
-function App() {
+const App = () => {
   const classes = useStyles();
+  const isLoggedIn = useReactiveVar(isLoggedInVar);
 
-  return (
+  const handleSubmit = e => {
+    isLoggedInVar(true);
+    localStorage.setItem("isLoggedIn", JSON.stringify(true));
+  };
+
+  return !isLoggedIn ? (
+    <RegisterUser onSubmit={handleSubmit} open={!isLoggedIn} />
+  ) : (
     <Router>
       <Switch>
         <Route exact path="/">
@@ -30,6 +41,6 @@ function App() {
       </Switch>
     </Router>
   );
-}
+};
 
 export default App;
